@@ -1,15 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-pip install opencv-python
-
-
-# In[2]:
-
-
 import cv2
 import numpy as np
 import face_recognition
@@ -18,11 +6,15 @@ import matplotlib.pyplot as plt
 import os
 
 
-# In[3]:
-
 
 players = ['Andy', 'anuj','dinesh karthik','faf du plesis','mahipal','KING','vyshak']
-address = ['andy.jpg','anuj.jpg','dk.jpg','faf.jpg','lomo.jpg','vk.jpg','vyshak.jpg']
+address = ['C:\Users\iamna\Downloads\Face attendance\Face-attendance-system\Faces\andy.jpeg',
+            'C:\Users\iamna\Downloads\Face attendance\Face-attendance-system\Faces\anuj.jpg',
+            'C:\Users\iamna\Downloads\Face attendance\Face-attendance-system\Faces\dk.jpg',
+            'C:\Users\iamna\Downloads\Face attendance\Face-attendance-system\Faces\faf.jpg',
+            'C:\Users\iamna\Downloads\Face attendance\Face-attendance-system\Faces\lomo.jpg',
+            'C:\Users\iamna\Downloads\Face attendance\Face-attendance-system\Faces\vk.jpg',
+            'C:\Users\iamna\Downloads\Face attendance\Face-attendance-system\Faces\vyshak.jpg']
 
 
 # Load a sample picture and learn how to recognize it.
@@ -59,62 +51,48 @@ known_face_encodings = [
     ]
 
 
-# In[4]:
-
 
 def extract_frames_per_second(video_path, output_folder):
-  # Open the video capture object
   cap = cv2.VideoCapture(video_path)
 
-  # Check if video opened successfully
   if not cap.isOpened():
       print("Error opening video!")
       return
 
-  # Get frame rate (FPS)
   fps = cap.get(cv2.CAP_PROP_FPS)
 
-  # Define frame count variable and counter for extracted frames
-  frame_count = 0
+
+  frame_count = 0   python -m 
   extracted_frame_count = 0
 
   while True:
       ret, frame = cap.read()
 
-      # Check if frame is read correctly
       if not ret:
           print("Can't receive frame (stream end?). Exiting...")
           break
 
-      # Extract frame every 1/fps seconds (assuming constant FPS)
       if frame_count % int(fps) == 0:
-          # Create filename with frame number
           filename = f"{output_folder}/frame_{extracted_frame_count}.jpg"
 
-          # Save the frame
           cv2.imwrite(filename, frame)
           extracted_frame_count += 1
 
       frame_count += 1
-
-  # When everything done, release the capture object
   cap.release()
   print(f"Extracted {extracted_frame_count} frames to {output_folder}")
 
 
-# In[5]:
 
 
 # Example usage
-video_path = "rcbvscsk.mp4"
+video_path = "C:\Users\iamna\Downloads\Face attendance\Face-attendance-system\Faces\rcbvscsk.mp4"
 output_folder = "Frames"
 extract_frames_per_second(video_path, output_folder)
 
 
-# In[6]:
 
-
-def get_image_path():
+'''def get_image_path():
     image_paths = []
     current_folder = os.getcwd()
     current_folder = current_folder + '\\Frames'
@@ -123,17 +101,47 @@ def get_image_path():
         if filename.lower().endswith((".jpg")):
             image_path = f"{current_folder}\\{filename}"
             image_paths.append(image_path)
-    return image_paths
+    return image_paths'''
 
 
-# In[7]:
+
+'''image_paths = get_image_path()'''
 
 
-image_paths = get_image_path()
+
+# Initialize some variables
+def face_recognition(image_paths,known_face_encodings,players):
+    face_locations = []
+    face_encodings = []
+    face_names = []
+    process_this_frame = True
+
+    for path in image_paths:
+        # Grab a single frame of video
+        frame = face_recognition.load_image_file(path)
+
+        rgb_small_frame = frame[:, :, ::-1]
+
+        if process_this_frame:
+            face_locations = face_recognition.api.face_locations(rgb_small_frame, number_of_times_to_upsample=1, model='hog')
+            face_encodings = face_recognition.face_encodings(frame, face_locations)
+
+            for face_encoding in face_encodings:
+                matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+
+                if True in matches:
+                     first_match_index = matches.index(True)
+                     name = players[first_match_index]
+
+                '''face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+                best_match_index = np.argmin(face_distances)
+                if matches[best_match_index]:
+                    name = players[best_match_index]'''
+
+                face_names.append(name)
+
+        process_this_frame = not process_this_frame
+    return set(face_names)
 
 
-# In[30]:
-
-
-get_ipython().run_cell_magic('time', '', "# Initialize some variables\ndef face_recognition(image_paths,known_face_encodings,players):\n    face_locations = []\n    face_encodings = []\n    face_names = []\n    process_this_frame = True\n\n    for path in image_paths:\n        # Grab a single frame of video\n        frame = face_recognition.load_image_file(path)\n\n        rgb_small_frame = frame[:, :, ::-1]\n\n        if process_this_frame:\n            face_locations = face_recognition.api.face_locations(rgb_small_frame, number_of_times_to_upsample=1, model='hog')\n            face_encodings = face_recognition.face_encodings(frame, face_locations)\n\n            for face_encoding in face_encodings:\n                matches = face_recognition.compare_faces(known_face_encodings, face_encoding)\n\n                if True in matches:\n                     first_match_index = matches.index(True)\n                     name = players[first_match_index]\n\n                '''face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)\n                best_match_index = np.argmin(face_distances)\n                if matches[best_match_index]:\n                    name = players[best_match_index]'''\n\n                face_names.append(name)\n\n        process_this_frame = not process_this_frame\n    return set(face_names)")
-
+    face_recognition(address,known_face_encodings,players)
